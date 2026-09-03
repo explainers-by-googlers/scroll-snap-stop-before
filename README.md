@@ -46,7 +46,7 @@ During inertial scrolling (such as a fling gesture):
 - When the scroll trajectory reaches or approaches a snap area with `scroll-snap-stop: before`, the scroll container cannot pass over that element.
 - Instead of snapping onto the `before` element itself, the container snaps to the snap target immediately before it in the direction of the scroll.
 
-## Use Case: Pull to Refresh ([Demo](pull_to_refresh_demo.html))
+## Use Case: Pull to Refresh ([Demo](https://htmlpreview.github.io/?https://github.com/explainers-by-googlers/scroll-snap-stop-before/blob/main/pull_to_refresh_demo.html))
 
 In a vertical feed with pull-to-refresh functionality, the container defines two primary snap positions:
 - A pull-to-refresh header located at the top of the scrollable area.
