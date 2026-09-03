@@ -1,12 +1,12 @@
 <pre class='metadata'>
-Title: The TODO API
-Shortname: todo
+Title: CSS Scroll Snap Stop: before
+Shortname: scroll-snap-stop-before
 Level: None
 Status: w3c/UD
-Repository: explainers-by-googlers/todo-your-repo-name
-URL: https://explainers-by-googlers.github.io/todo-your-repo-name
-Editor: TODO: Your Name, Google https://google.com, TODO@google.com
-Abstract: TODO: A short description of your spec, one or two sentences.
+Repository: explainers-by-googlers/scroll-snap-stop-before
+URL: https://explainers-by-googlers.github.io/scroll-snap-stop-before
+Editor: David Liu, Google https://google.com, lcdavid@google.com
+Abstract: This specification proposes the 'before' value for the 'scroll-snap-stop' CSS property, allowing snap areas to halt inertial scrolling at the snap target immediately preceding the specified element.
 Markup Shorthands: markdown yes, css no
 Complain About: accidental-2119 yes, missing-example-ids yes
 Assume Explicit For: yes

@@ -1,185 +1,79 @@
-# Explainer for the TODO API
-
-**Instructions for the explainer author: Search for "todo" in this repository and update all the
-instances as appropriate. For the instances in `index.bs`, update the repository name, but you can
-leave the rest until you start the specification. Then delete the TODOs and this block of text.**
-
-This proposal is an early design sketch by [TODO: team] to describe the problem below and solicit
-feedback on the proposed solution. It has not been approved to ship in Chrome.
-
-TODO: Fill in the whole explainer template below using https://tag.w3.org/explainers/ as a
-reference. Look for [brackets].
-
-## Proponents
-
-- [Proponent team 1]
-- [Proponent team 2]
-- [etc.]
-
-## Participate
-- https://github.com/explainers-by-googlers/[your-repository-name]/issues
-- [Discussion forum]
-
-## Table of Contents [if the explainer is longer than one printed page]
-
-<!-- Update this table of contents by running `npx doctoc README.md` -->
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-- [Introduction](#introduction)
-- [Goals](#goals)
-- [Non-goals](#non-goals)
-- [User research](#user-research)
-- [Use cases](#use-cases)
-  - [Use case 1](#use-case-1)
-  - [Use case 2](#use-case-2)
-- [[Potential Solution]](#potential-solution)
-  - [How this solution would solve the use cases](#how-this-solution-would-solve-the-use-cases)
-    - [Use case 1](#use-case-1-1)
-    - [Use case 2](#use-case-2-1)
-- [Detailed design discussion](#detailed-design-discussion)
-  - [[Tricky design choice #1]](#tricky-design-choice-1)
-  - [[Tricky design choice 2]](#tricky-design-choice-2)
-- [Considered alternatives](#considered-alternatives)
-  - [[Alternative 1]](#alternative-1)
-  - [[Alternative 2]](#alternative-2)
-- [Security and Privacy Considerations](#security-and-privacy-considerations)
-- [Stakeholder Feedback / Opposition](#stakeholder-feedback--opposition)
-- [References & acknowledgements](#references--acknowledgements)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+# Explainer: `scroll-snap-stop: before`
 
 ## Introduction
 
-[The "executive summary" or "abstract".
-Explain in a few sentences what the goals of the project are,
-and a brief overview of how the solution works.
-This should be no more than 1-2 paragraphs.]
+In [CSS Scroll Snap Module Level 1](https://drafts.csswg.org/css-scroll-snap-1/), the `scroll-snap-stop` property controls whether a scroll container passes over snap positions during inertial scrolling.
 
-## Goals
+This explainer proposes the `before` value for `scroll-snap-stop`. When an inertial scroll (such as a fling) encounters a snap target marked `scroll-snap-stop: before`, scrolling stops and snaps to the snap target immediately before the specified element.
 
-[What is the **end-user need** which this project aims to address? Make this section short, and
-elaborate in the Use cases section.]
+## Goals & Non-Goals
 
-## Non-goals
+### Goals
+- Enable developers to declaratively stop inertial scrolling at the snap target immediately before a designated element.
+- Support common web patterns such as pull-to-refresh indicators, paywall boundaries, and interstitial barriers without JavaScript scroll interception.
+- Integrate seamlessly with existing `scroll-snap-type` and `scroll-snap-align` behaviors.
 
-[If there are "adjacent" goals which may appear to be in scope but aren't,
-enumerate them here. This section may be fleshed out as your design progresses and you encounter necessary technical and other trade-offs.]
+### Non-Goals
+- Alter direct, continuous touch/pointer dragging past the snap area while the user maintains contact.
+- Modify programmatic scrolling APIs (e.g., `Element.scrollTo()`).
 
-## User research
+## Background and Motivation
 
-[If any user research has been conducted to inform your design choices,
-discuss the process and findings. User research should be more common than it is.]
+Web interfaces often require scrollable containers to stop ahead of specific elements rather than on top of them. A classic example is a "pull-to-refresh" indicator situated above a feed:
 
-## Use cases
+1. The scroll container defaults its scroll position to the start of the feed content, keeping the pull-to-refresh indicator hidden off-screen above the visible snapport.
+2. When a user scrolls down through the feed and subsequently flings upward with high momentum, they expect the scroll to halt at the top of the feed content rather than triggering an accidental refresh.
+3. To actually initiate a refresh, the user must deliberately drag downward past the feed boundary to bring the indicator into view.
 
-[Describe in detail what problems end-users are facing, which this project is trying to solve. A
-common mistake in this section is to take a web developer's or server operator's perspective, which
-makes reviewers worry that the proposal will violate [RFC 8890, The Internet is for End
-Users](https://www.rfc-editor.org/rfc/rfc8890).]
+Existing `scroll-snap-stop` values cannot achieve this declarative balance:
+- `normal` allows fast upward flings to bypass the feed start and land on or overshoot the indicator.
+- `always` forces flings to snap onto the indicator itself whenever scrolling upward past the feed start.
 
-### Use case 1
+`scroll-snap-stop: before` provides the necessary primitive by preventing inertial flings from reaching the indicator, snapping instead to the feed content start directly before it.
 
-### Use case 2
+## Proposal
 
-<!-- In your initial explainer, you shouldn't be attached or appear attached to any of the potential
-solutions you describe below this. -->
+The `before` keyword is added to `scroll-snap-stop`:
 
-## [Potential Solution]
-
-[For each related element of the proposed solution - be it an additional JS method, a new object, a new element, a new concept etc., create a section which briefly describes it.]
-
-```js
-// Provide example code - not IDL - demonstrating the design of the feature.
-
-// If this API can be used on its own to address a user need,
-// link it back to one of the scenarios in the goals section.
-
-// If you need to show how to get the feature set up
-// (initialized, or using permissions, etc.), include that too.
+```css
+scroll-snap-stop: before;
 ```
 
-[Where necessary, provide links to longer explanations of the relevant pre-existing concepts and API.
-If there is no suitable external documentation, you might like to provide supplementary information as an appendix in this document, and provide an internal link where appropriate.]
+### Behavior
 
-[If this is already specced, link to the relevant section of the spec.]
+During inertial scrolling (such as a fling gesture):
 
-[If spec work is in progress, link to the PR or draft of the spec.]
+- When the scroll trajectory reaches or approaches a snap area with `scroll-snap-stop: before`, the scroll container cannot pass over that element.
+- Instead of snapping onto the `before` element itself, the container snaps to the snap target immediately before it in the direction of the scroll.
 
-[If you have more potential solutions in mind, add ## Potential Solution 2, 3, etc. sections.]
+## Use Case: Pull to Refresh ([Demo](pull_to_refresh_demo.html))
 
-### How this solution would solve the use cases
+In a vertical feed with pull-to-refresh functionality, the container defines two primary snap positions:
+- A pull-to-refresh header located at the top of the scrollable area.
+- The main feed content container located immediately below the header.
 
-[If there are a suite of interacting APIs, show how they work together to solve the use cases described.]
+By applying `scroll-snap-stop: before` to the pull-to-refresh header and standard snap alignment to the main feed start, the following behavior is achieved:
 
-#### Use case 1
+- **Upward Momentum Flings**: Fast upward flings through the feed halt and snap at the main feed start, leaving the refresh indicator unreached and untriggered.
+- **Intentional Drag**: When the user deliberately drags downward from the top of the feed with their finger down, they can pull the refresh header into view to trigger the action.
 
-[Description of the end-user scenario]
+```css
+.scroller {
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+}
 
-```js
-// Sample code demonstrating how to use these APIs to address that scenario.
+.ptr-indicator {
+  scroll-snap-align: start;
+  scroll-snap-stop: before;
+}
+
+.feed-content {
+  scroll-snap-align: start;
+}
 ```
 
-#### Use case 2
+## Compatibility
 
-[etc.]
-
-## Detailed design discussion
-
-### [Tricky design choice #1]
-
-[Talk through the tradeoffs in coming to the specific design point you want to make.]
-
-```js
-// Illustrated with example code.
-```
-
-[This may be an open question,
-in which case you should link to any active discussion threads.]
-
-### [Tricky design choice 2]
-
-[etc.]
-
-## Considered alternatives
-
-[This should include as many alternatives as you can,
-from high level architectural decisions down to alternative naming choices.]
-
-### [Alternative 1]
-
-[Describe an alternative which was considered,
-and why you decided against it.]
-
-### [Alternative 2]
-
-[etc.]
-
-## Security and Privacy Considerations
-
-[Describe any interesting answers you give to the [Security and Privacy Self-Review
-Questionnaire](https://www.w3.org/TR/security-privacy-questionnaire/) and any interesting ways that
-your feature interacts with [Chromium's Web Platform Security
-Guidelines](https://chromium.googlesource.com/chromium/src/+/master/docs/security/web-platform-security-guidelines.md).]
-
-## Stakeholder Feedback / Opposition
-
-[Implementors and other stakeholders may already have publicly stated positions on this work. If you can, list them here with links to evidence as appropriate.]
-
-- [Implementor A] : Positive
-- [Stakeholder B] : No signals
-- [Implementor C] : Negative
-
-[If appropriate, explain the reasons given by other implementors for their concerns.]
-
-## References & acknowledgements
-
-[Your design will change and be informed by many people; acknowledge them in an ongoing way! It helps build community and, as we only get by through the contributions of many, is only fair.]
-
-[Unless you have a specific reason not to, these should be in alphabetical order.]
-
-Many thanks for valuable feedback and advice from:
-
-- [Person 1]
-- [Person 2]
-- [etc.]
+- **Default Behavior**: Elements without `scroll-snap-stop: before` retain the initial value `scroll-snap-stop: normal`.
+- **Fallback**: Browsers without support for `before` treat the value as invalid and fall back to default snapping behavior.

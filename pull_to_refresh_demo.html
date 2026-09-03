@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scroll Snap Stop: Before Demo (Pull to Refresh)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .scroller {
+      width: 400px;
+      height: 600px;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      border: 1px solid #ddd;
+    }
+    .ptr-area {
+      height: 80px;
+      background: #e3f2fd;
+      color: #1976d2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+      scroll-snap-align: start;
+      scroll-snap-stop: before;
+      border-bottom: 2px dashed #90caf9;
+    }
+    .content {
+      scroll-snap-align: start;
+      min-height: 600px;
+      padding: 20px;
+    }
+    .content h2 {
+      margin-bottom: 12px;
+      color: #333;
+    }
+    .item {
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 10px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="scroller" id="scroller">
+    <div class="ptr-area" id="ptrArea">
+      ⬇ Pull to Refresh
+    </div>
+    <div class="content" id="mainContent">
+      <h2>Main Content Start</h2>
+      <p style="margin-bottom: 16px; color: #666; font-size: 13px;">
+        Scroll down, then fling up quickly. With <code>scroll-snap-stop: before</code>, momentum scrolling will stop at this header and will not trigger the PTR area.
+      </p>
+      <div class="item">Message 1: Welcome to the feed</div>
+      <div class="item">Message 2: Scroll up and down to test</div>
+      <div class="item">Message 3: Fling upwards with high velocity</div>
+      <div class="item">Message 4: PTR is not reached via fling due to 'before'</div>
+      <div class="item">Message 5: Drag manually to pull PTR into view</div>
+      <div class="item">Message 6: Scroll down further to gain momentum</div>
+      <div class="item">Message 7: Feed item sample content</div>
+      <div class="item">Message 8: Feed item sample content</div>
+      <div class="item">Message 9: Feed item sample content</div>
+      <div class="item">Message 10: Feed item sample content</div>
+      <div class="item">Message 11: Feed item sample content</div>
+      <div class="item">Message 12: Feed item sample content</div>
+      <div class="item">Message 13: Feed item sample content</div>
+      <div class="item">Message 14: Feed item sample content</div>
+      <div class="item">Message 15: Feed item sample content</div>
+      <div class="item">Message 16: Feed item sample content</div>
+      <div class="item">Message 17: Feed item sample content</div>
+      <div class="item">Message 18: Feed item sample content</div>
+      <div class="item">Message 19: Feed item sample content</div>
+      <div class="item">Message 20: Feed item sample content</div>
+      <div class="item">Message 21: Feed item sample content</div>
+      <div class="item">Message 22: Feed item sample content</div>
+      <div class="item">Message 23: Feed item sample content</div>
+      <div class="item">Message 24: Feed item sample content</div>
+      <div class="item">Message 25: End of feed</div>
+    </div>
+  </div>
+
+  <script>
+    const scroller = document.getElementById('scroller');
+    const ptrArea = document.getElementById('ptrArea');
+    const mainContent = document.getElementById('mainContent');
+    let isRefreshing = false;
+    let refreshCount = 0;
+
+    window.addEventListener('load', () => {
+      scroller.scrollTop = ptrArea.offsetHeight;
+    });
+
+    scroller.addEventListener('scroll', () => {
+      if (isRefreshing) return;
+
+      // Trigger refresh when manually pulled to top snap point
+      if (scroller.scrollTop <= 0) {
+        isRefreshing = true;
+        ptrArea.textContent = '🔄 Refreshing...';
+
+        setTimeout(() => {
+          refreshCount++;
+          const newItem = document.createElement('div');
+          newItem.className = 'item';
+          newItem.style.background = '#e8f5e9';
+          newItem.style.borderColor = '#c8e6c9';
+          newItem.textContent = `✨ New refreshed item #${refreshCount} (${new Date().toLocaleTimeString()})`;
+          
+          const firstItem = mainContent.querySelector('.item');
+          mainContent.insertBefore(newItem, firstItem);
+
+          // Snap back down to main content
+          scroller.scrollTo({
+            top: ptrArea.offsetHeight,
+            behavior: 'smooth'
+          });
+
+          setTimeout(() => {
+            ptrArea.textContent = '⬇ Pull to Refresh';
+            isRefreshing = false;
+          }, 500);
+        }, 2000);
+      }
+    });
+  </script>
+</body>
+</html>
